@@ -1,0 +1,909 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0"><channel><title><![CDATA[Chris Wren's Blog]]></title><description><![CDATA[A blog about code, music, and commerce.]]></description><link>http://chrisawren.com</link><generator>RSS for Node</generator><lastBuildDate>Mon, 23 Dec 2013 01:31:21 GMT</lastBuildDate><atom:link href="http://chrisawren.com/feed.xml" rel="self" type="application/rss+xml"/><author><![CDATA[Chris Wren]]></author><pubDate>Mon, 23 Dec 2013 01:31:21 GMT</pubDate><copyright><![CDATA[2013 Chris Wren]]></copyright><language><![CDATA[en]]></language><managingEditor><![CDATA[Chris Wren]]></managingEditor><webMaster><![CDATA[Chris Wren]]></webMaster><ttl>60</ttl><item><title><![CDATA[Making sense of Remote Web Debugging]]></title><description><![CDATA[<p>Remotely debugging mobile and tablet web apps can be a painful process, especially if you don&#39;t equip yourself with the proper tooling. In this post, I will share a set of tools which can help you achieve a better workflow when developing for multiple browsers and OS&#39;s on the mobile and tablet web.</p>
+<h2><a name="LiveReload" class="anchor" href="#LiveReload"><span class="header-link"></span></a>LiveReload</h2>
+<p>If you don&#39;t already use LiveReload, you simply must. It is an essential tool for any kind of web development, and is especially useful when developing for multiple devices. When using LiveReload, each devices browser will automatically refresh when changes are detected, so you don&#39;t have to manually refresh them. The only exception as of this writing is the Android Browser(on Android &lt; 4.4) which lacks the ability to use LiveReload because it doesn&#39;t have web sockets support.</p>
+<p>The only caveat when using LiveReload on remote devices, is to make sure that your injected LiveReload script points to the device browser&#39;s hostname instead of <code>localhost</code> or <code>127.0.0.1</code>. This can be accomplished using <a href="https://github.com/ChrisWren/grunt-inject">grunt-inject</a> and <a href="https://github.com/gruntjs/grunt-contrib-watch">grunt-contrib-watch</a>, more on setting those up below.</p>
+<h2><a name="Inspecting-your-site" class="anchor" href="#Inspecting-your-site"><span class="header-link"></span></a>Inspecting your site</h2>
+<p>When developing a mobile/tablet website, there a number of inspection tools which each have differing levels of device and debugging support. Below I will list inspection tools based on what browsers they target.</p>
+<h3><a name="Safari--Develop--Tab" class="anchor" href="#Safari--Develop--Tab"><span class="header-link"></span></a>Safari <code>Develop</code> Tab</h3>
+<p>Mobile Browser: iOS Safari</p>
+<p><img src="" alt=""></p>
+<p>To debug iOS Safari, all you have to do is connect your iOS devices via USB, make sure the <code>Develop</code> tab is enabled and then select the browser tab that you want to debug. This will let you inspect the state of the app, set breakpoints, and do everything else available in the regular Safari dev tools.</p>
+<h3><a name="Android-Debug-Bridge" class="anchor" href="#Android-Debug-Bridge"><span class="header-link"></span></a>Android Debug Bridge</h3>
+<p>Mobile Browser: Chrome for Android, Android Browser on Android 4.4+</p>
+<p>[gif]</p>
+<p>Android Debug Bridge, or adb, allows you to debug Chrome for Android remotely. The best way to accomplish this is by connecting your Android via USB and installing adb via a <a href="">Chrome extension</a>. After connecting an Android device, you just click the extension&#39;s green Android icon and select a browser tab from Chrome&#39;s <code>inspect://</code> page.</p>
+<h3><a name="JSHybugger" class="anchor" href="#JSHybugger"><span class="header-link"></span></a>JSHybugger</h3>
+<div class="center">
+<img src="/images/posts/mobile-debug/jshybugger.png" alt="jshybugger">
+</div>
+
+<p><img src="" alt=""></p>
+<p>Mobile Browser: Android Browser on Android &lt; 4.4</p>
+<p>JSHybugger is a tool that lets you debug the Android browser using a subset of the Chrome dev tools. Only Android 4.4&#39;s browser is able to be debugged using Chrome, so for any version less than 4.4, you must use this tool. JSHybugger allows you to set breakpoints for your JS and perform DOM searches to look at the styles of specific content. This is a huge step up from debugging the Android Browser with <code>console.log</code>.</p>
+<h3><a name="Weinre-Web-inspector-remote-" class="anchor" href="#Weinre-Web-inspector-remote-"><span class="header-link"></span></a>Weinre(Web inspector remote)</h3>
+<p>Mobile Browser: Anything but iOS Safari, Chrome for Android, or Android Browser</p>
+<p>Weinre(pronounced whine-ree or weiner) let&#39;s you debug mobile web browsers that don&#39;t have dedicated web inspector tooling. It provides a subset of the Chrome dev tools, notably lacking JavaScript breakpoints and DOM searching that JSHybugger provides. It is also considerably slower than JSHybugger.</p>
+<p>I recently made a grunt plugin for weinre, <a href="https://github.com/ChrisWren/grunt-weinre">grunt-weinre</a>, which lets you integrate it with the rest of your workflow when debugging non iOS/Android devices.</p>
+<h2><a name="Ghostlab" class="anchor" href="#Ghostlab"><span class="header-link"></span></a>Ghostlab</h2>
+<p><img src="" alt=""></p>
+<div class="center">
+<img src="/images/posts/mobile-debug/ghostlab.png" alt="ghostlab">
+</div>
+
+<p>Ghostlab is an OSX tool which syncs touches and clicks across multiple devices. You can develop in your desktop browser and have your interactions synced, including clicks and navigation. It provides access to the weinre debugger out of the box, so if you are using Mac and willing to pay for the license, you can use weinre without having to install it separately.</p>
+<h2><a name="Simulators-Emulators" class="anchor" href="#Simulators-Emulators"><span class="header-link"></span></a>Simulators/Emulators</h2>
+<p>In an ideal situation, you wouldn&#39;t need simulators or emulators, because you would own devices which cover all the OSs and browsers visiting your web app. However, in the real world where you don&#39;t have all the devices at your disposal, simulators can be helpful.</p>
+<h3><a name="iOS-Simulator-on-Mac" class="anchor" href="#iOS-Simulator-on-Mac"><span class="header-link"></span></a>iOS Simulator on Mac</h3>
+<p>[gif]</p>
+<p>The iOS Simulator is very easy to use. You can quickly switch between devices and OSs. It emulates touch events by default which is nice so you can pretend your mouse is your thumb when interacting with your website. To use the iOS Simulator, make sure you have the latest XCode installed then under the XCode menu click <code>Open Developer Tool</code>, <code>iOS Simulator</code>. Also if you use Alfred, check out the <a href="https://github.com/zenorocha/alfred-workflows#ios-simulator-10--download">iOS Simulator workflow</a> to get easy access.</p>
+<h3><a name="Genymotion-Android-Simulator" class="anchor" href="#Genymotion-Android-Simulator"><span class="header-link"></span></a>Genymotion Android Simulator</h3>
+<p>The default Android Simulator is <em>much</em> slower than the iOS one, to a point where it is nearly unusable. Luckily <a href="http://www.genymotion.com/">Genymotion</a> has made a quality Android Simulator which supports a large number of devices using VirtualBox.</p>
+<h2><a name="Adobe-Edge-Inspect" class="anchor" href="#Adobe-Edge-Inspect"><span class="header-link"></span></a>Adobe Edge Inspect</h2>
+<p><img src="" alt=""></p>
+<p>Adobe&#39;s Edge Inspect lets you inspect remote browsers using weinre and have your devices follow your desktop browser around as it navigates and switches tabs. What is nice about this tool is that you can install it as an app on your iOS and Android devices, then have the automatically hook up to the desktop without having to type out your local machine name or IP address on each device&#39;s browser.</p>
+<p>The problem is that Edge Inspect has native app chrome and runs the browser inside a WebView, which prevents you from seeing the browser in its true form. Also, it only provides weinre debugging, and is not even available on platforms which would benefit from weinre as Android and iOS have better debugging tools available.</p>
+<h2><a name="Workflow" class="anchor" href="#Workflow"><span class="header-link"></span></a>Workflow</h2>
+<p>Now that I have laid out all the different tools for debugging remote browsers, it is time to bring them all together to create a cohesive, productive workflow. Debugging Chrome for Android and iOS Safari doesn&#39;t require any setup as you simply just enable settings in Safari and add a Chrome extension.</p>
+<p>However, for JSHybugger you will need to install it on all your Android devices and have it point to the correct url. I recommend installing it via Dropbox as you can also use Dropbox to automatically sync device screenshots to your computer.</p>
+<h3><a name="Sample-Grunt-config-to-setup-device-LiveReloading-and-weinre" class="anchor" href="#Sample-Grunt-config-to-setup-device-LiveReloading-and-weinre"><span class="header-link"></span></a>Sample Grunt config to setup device LiveReloading and weinre</h3>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="nx">weinre</span><span class="o">:</span> <span class="p">{</span>
+
+<span class="p">},</span>
+
+<span class="nx">inject</span><span class="o">:</span> <span class="p">{</span>
+
+<span class="p">}</span>
+</pre></div>
+</code></pre>
+]]></description><link>http://chrisawren.com/posts/Making-sense-of-Remote-Web-Debugging</link><guid isPermaLink="true">http://chrisawren.com/posts/Making-sense-of-Remote-Web-Debugging</guid><category><![CDATA[code]]></category><dc:creator><![CDATA[Chris Wren]]></dc:creator><pubDate>Sat, 21 Dec 2013 15:41:56 GMT</pubDate></item><item><title><![CDATA[Implementing microstates in Backbone.js]]></title><description><![CDATA[<div class="full-image">
+  <img src="/images/posts/microstates/microstate.png" alt="microstate">
+</div>
+
+<p><em>Wireframe made with <a href="http://balsamiq.com/">Balsamiq</a>, including four color-coded interactions which will be discussed in the post.</em></p>
+<p>When developing a Backbone.js mobile web app recently, I needed to create a unique history state <em>without</em> a unique URL when opening an overlay. This was done to allow the user to hit <code>back</code> in the browser and be returned to the view which launched the overlay. While solving this problem, I landed upon a concept of <strong>microstates</strong> which I thought might be of interest to other web app developers. </p>
+<p>In this post I will first give an overview of the HTML5 History API, then talk about how to create a microstate in a Backbone app, and conclude with the implications of exposing microstates.</p>
+<h2><a name="Background-on-the-HTML5-History-API" class="anchor" href="#Background-on-the-HTML5-History-API"><span class="header-link"></span></a>Background on the HTML5 History API</h2>
+<p>Before I dive into microstates, I thought it would be helpful to give an overview of the History API. When implementing microstates, it is important to be familiar with two methods(<code>history.pushState</code> and <code>history.back</code>) and one event(<code>popstate</code>).</p>
+<h3><a name="history-pushState" class="anchor" href="#history-pushState"><span class="header-link"></span></a>history.pushState</h3>
+<p>The <code>history.pushState</code> method adds a new entry to the browser history, associating a state object with a URL. Here is its method signature:</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="nb">window</span><span class="p">.</span><span class="nx">history</span><span class="p">.</span><span class="nx">pushState</span><span class="p">(</span><span class="nx">stateObject</span><span class="p">,</span> <span class="nx">stateTitle</span><span class="p">,</span> <span class="nx">url</span><span class="p">);</span>
+</pre></div>
+</code></pre>
+<h4><a name="stateObject" class="anchor" href="#stateObject"><span class="header-link"></span></a>stateObject</h4>
+<p>Type: <em>Serializable</em> Object</p>
+<p>This object represents the state which you wish to associate with a new URL in your app. It must be a serializable object, so it <em>cannot</em> contain functions.</p>
+<h4><a name="stateTitle" class="anchor" href="#stateTitle"><span class="header-link"></span></a>stateTitle</h4>
+<p>Type: String</p>
+<p>This string is currently ignored, so it is best to either pass an empty string or <code>document.title</code>.</p>
+<h4><a name="url" class="anchor" href="#url"><span class="header-link"></span></a>url</h4>
+<p>Type: String</p>
+<p>This is the URL that will be shown in the address bar of the browser after the update occurs. If the user refreshes, it is your responsibility to reproduce the current state using the <code>url</code> and <code>stateObject</code>.</p>
+<h3><a name="history-back" class="anchor" href="#history-back"><span class="header-link"></span></a>history.back</h3>
+<p>The <code>history.back</code> method is essentially the programmatic way of clicking the back button in the browser. The only way to respond to it is by listening to the <code>popstate</code> event.</p>
+<h3><a name="popstate" class="anchor" href="#popstate"><span class="header-link"></span></a>popstate</h3>
+<p><div data-image="microstate" class="balsamiq image-proxy balsamiq-brown"></div>
+The <code>popstate</code> event is how you respond to state changes in a web app. It provides you a reference to the current pushState <code>stateObject</code> via <code>event.state</code> so that you can update the app to reflect the new state. In Backbone, you can make <code>popstate</code> a global event by triggering an event on the <code>Backbone</code> object and then listening to the <code>popstate</code> event in your view like so:</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="c1">// Trigger popstate as a Backbone event</span>
+<span class="nb">window</span><span class="p">.</span><span class="nx">onpopstate</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">Backbone</span><span class="p">.</span><span class="nx">trigger</span><span class="p">(</span><span class="s1">&#39;popstate&#39;</span><span class="p">,</span> <span class="nx">event</span><span class="p">);</span>
+<span class="p">};</span>
+
+<span class="c1">// Listen to popstate in the ParentView and respond by either showing</span>
+<span class="c1">// or hiding the overlay</span>
+<span class="kd">var</span> <span class="nx">ParentView</span> <span class="o">=</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+
+  <span class="nx">initialize</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">listenTo</span><span class="p">(</span><span class="nx">Backbone</span><span class="p">,</span> <span class="s1">&#39;popstate&#39;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">popstate</span><span class="p">);</span>
+  <span class="p">},</span>
+
+  <span class="nx">popstate</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="p">{</span>
+
+    <span class="c1">// If event.state is not null or</span>
+    <span class="c1">// an empty {}, it is a microstate</span>
+    <span class="c1">// that we pushed explicitly, so show the overlay</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">state</span> <span class="o">&amp;&amp;</span> <span class="nx">_</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">state</span><span class="p">).</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+
+      <span class="c1">// more on this method below</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">showOverlay</span><span class="p">(</span><span class="nx">event</span><span class="p">.</span><span class="nx">state</span><span class="p">,</span> <span class="kc">true</span><span class="p">);</span>
+
+    <span class="c1">// If event.state is null or {}, that means</span>
+    <span class="c1">// the state was never pushed(deep-link) or pushed</span>
+    <span class="c1">// by Backbone with an empty state object</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">hideOverlay</span><span class="p">();</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">});</span>
+</pre></div>
+</code></pre>
+<h2><a name="How-Backbone-uses-the-History-API" class="anchor" href="#How-Backbone-uses-the-History-API"><span class="header-link"></span></a>How Backbone uses the History API</h2>
+<p>Backbone uses the History API when run in modern browsers, and falls back to hash changes in older browsers. When using Backbone, you are provided the <code>router.navigate</code> method to update the state of your app to a new URL so that if the user refreshes their browser, they will see the same content, or if they hit the back button, they will be returned to the previous content. Backbone ensures unique <code>url</code> entries, and opts out of using the <code>stateObject</code> as seen in the below excerpt from the source code:</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="k">this</span><span class="p">.</span><span class="nx">history</span><span class="p">[</span><span class="nx">options</span><span class="p">.</span><span class="nx">replace</span> <span class="o">?</span> <span class="s1">&#39;replaceState&#39;</span> <span class="o">:</span> <span class="s1">&#39;pushState&#39;</span><span class="p">]({},</span> <span class="nb">document</span><span class="p">.</span><span class="nx">title</span><span class="p">,</span> <span class="nx">url</span><span class="p">);</span>
+</pre></div>
+</code></pre>
+<p><em>Note the empty object literal as the first argument.</em></p>
+<p>Because of this, Backbone relies on URLs to be unique, so a few lines above that code, the following code detects a duplicate URL fragment and exits early before pushing it:</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">fragment</span> <span class="o">===</span> <span class="nx">fragment</span><span class="p">)</span> <span class="k">return</span><span class="p">;</span>
+</pre></div>
+</code></pre>
+<h2><a name="Implementing-a-microstate" class="anchor" href="#Implementing-a-microstate"><span class="header-link"></span></a>Implementing a microstate</h2>
+<p>Typically the standard Backbone routing serves all your needs as a web developer, but the overlay state I described earlier would have its own state <em>without</em> a new URL, making it impossible to use <code>router.navigate</code>. Below I will walk through how I implemented microstates in a parent view, overlay view, and router.</p>
+<h3><a name="Implementing-a-microstate-in-a-view" class="anchor" href="#Implementing-a-microstate-in-a-view"><span class="header-link"></span></a>Implementing a microstate in a view</h3>
+<p><div data-image="microstate" class="balsamiq image-proxy balsamiq-pink"></div>
+To create a microstate, I circumvented the Backbone Router and interacted with <code>history.pushState</code> directly. Here is some sample code for pushing a microstate into history:</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">ParentView</span> <span class="o">=</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+
+  <span class="c1">// UI event which initially shows the overlay</span>
+  <span class="nx">events</span><span class="o">:</span> <span class="p">{</span>
+    <span class="s1">&#39;click .button&#39;</span><span class="o">:</span> <span class="s1">&#39;showOverlay&#39;</span>
+  <span class="p">},</span>
+
+  <span class="c1">// This method is augmented with a second parameter</span>
+  <span class="c1">// to allow for the popstate handler to show the overlay</span>
+  <span class="c1">// without pushing a new state(as seen in above popstate snippet)</span>
+  <span class="nx">showOverlay</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">event</span><span class="p">,</span> <span class="nx">triggeredByPopState</span><span class="p">)</span> <span class="p">{</span>
+
+    <span class="c1">// Unless the user pressed forward in the browser and the overlay is being</span>
+    <span class="c1">// shown via the popstate handler, add a new microstate in history</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">triggeredByPopstate</span><span class="p">)</span> <span class="p">{</span>
+
+      <span class="c1">// This object must be serializable, no functions allowed!</span>
+      <span class="kd">var</span> <span class="nx">overlayState</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="nx">overlayType</span><span class="o">:</span> <span class="s1">&#39;locationFilter&#39;</span>
+      <span class="p">};</span>
+
+      <span class="c1">// In contrast with Backbone&#39;s `router.navigate`, this pushes a</span>
+      <span class="c1">// unique stateObject and a duplicate URL. </span>
+      <span class="nb">window</span><span class="p">.</span><span class="nx">history</span><span class="p">.</span><span class="nx">pushState</span><span class="p">(</span><span class="nx">overlayState</span><span class="p">,</span> <span class="nb">document</span><span class="p">.</span><span class="nx">title</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="c1">// Now show the overlay</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">subView</span><span class="p">.</span><span class="nx">overlay</span><span class="p">.</span><span class="nx">show</span><span class="p">();</span>
+  <span class="p">}</span>
+<span class="p">});</span>
+</pre></div>
+</code></pre>
+<h3><a name="Implementing-a-microstate-in-the-router" class="anchor" href="#Implementing-a-microstate-in-the-router"><span class="header-link"></span></a>Implementing a microstate in the router</h3>
+<p>To accomodate microstates, I ended up keeping track of the hit routes in my app by using the <a href="https://github.com/boazsender/backbone.routefilter">backbone.routefilter</a> plugin. Using the <code>before</code> method in the router, I could now determine if a newly pushed state was a microstate by comparing it with the previous URL and then exiting early if they match. Here is some sample router code to set this up:</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">MyRouter</span> <span class="o">=</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Router</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+
+  <span class="nx">initialize</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+
+    <span class="c1">// When app initializes there are no hitRoutes</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">hitRoutes</span> <span class="o">=</span> <span class="p">[];</span>
+  <span class="p">},</span>
+
+  <span class="c1">// This function is called when a popstate event occurs before a route handler is invoked.</span>
+  <span class="c1">// If false is returned, the route handler will not be called, if true, it will.</span>
+  <span class="nx">before</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+
+    <span class="kd">var</span> <span class="nx">currentUrl</span> <span class="o">=</span> <span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">pathname</span> <span class="o">+</span> <span class="nb">window</span><span class="p">.</span><span class="nx">location</span><span class="p">.</span><span class="nx">search</span><span class="p">;</span>
+
+    <span class="c1">// If the new state is a micro state,</span>
+    <span class="c1">// don&#39;t process it via the corresponding route handler</span>
+    <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">hitRoutes</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> 
+        <span class="nx">_</span><span class="p">.</span><span class="nx">last</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">hitRoutes</span><span class="p">)</span> <span class="o">===</span> <span class="nx">currentUrl</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="kc">false</span><span class="p">;</span>
+
+    <span class="c1">// If the user goes back, remove the last hitRoute so that </span>
+    <span class="c1">// hitRoutes has the correct record of history</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">hitRoutes</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="o">&amp;&amp;</span>
+               <span class="nx">currentUrl</span> <span class="o">===</span> <span class="k">this</span><span class="p">.</span><span class="nx">hitRoutes</span><span class="p">[</span><span class="k">this</span><span class="p">.</span><span class="nx">hitRoutes</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">2</span><span class="p">])</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">hitRoutes</span><span class="p">.</span><span class="nx">pop</span><span class="p">();</span>
+
+    <span class="c1">// By default add the URL to the array of hit routes</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">this</span><span class="p">.</span><span class="nx">hitRoutes</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">currentUrl</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="kc">true</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">});</span>
+</pre></div>
+</code></pre>
+<h3><a name="Pushing-a-new-URL-while-in-a-microstate" class="anchor" href="#Pushing-a-new-URL-while-in-a-microstate"><span class="header-link"></span></a>Pushing a new URL while in a microstate</h3>
+<p><div data-image="microstate" class="balsamiq image-proxy balsamiq-green"></div>
+For my use case, the microstate provided input which if submitted, resulted in a new URL being pushed. However, if I pushed the new URL outright, the microstate would persist in the browser history when I really wanted it to temporarily exist in front of the parent state. With no further code, the history would look like this:</p>
+<p><code>parent state</code> -&gt; <code>microstate</code> -&gt; <code>new state</code></p>
+<p>To resolve this I used the <code>history.back</code> method described earlier and listened to the <code>popstate</code> event before pushing the new URL, essentially short-circuiting the microstate. Here is some sample code to achive this:</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">MyOverlayView</span> <span class="o">=</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+
+  <span class="c1">// UI event which submits the input data</span>
+  <span class="nx">events</span><span class="o">:</span> <span class="p">{</span>
+    <span class="s1">&#39;click .submit&#39;</span><span class="o">:</span> <span class="s1">&#39;submitData&#39;</span>
+  <span class="p">},</span>
+
+  <span class="nx">submitData</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+
+    <span class="c1">// Go back asynchronously and alert the parent view</span>
+    <span class="nb">window</span><span class="p">.</span><span class="nx">history</span><span class="p">.</span><span class="nx">back</span><span class="p">();</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">trigger</span><span class="p">(</span><span class="s1">&#39;submit&#39;</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">});</span>
+</pre></div>
+</code></pre>
+<p>Here is how the parent view would respond to the submit:</p>
+<pre><code><div class="highlight"><pre><span class="kd">var</span> <span class="nx">MyParentView</span> <span class="o">=</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+  <span class="nx">initialize</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">subView</span><span class="p">.</span><span class="nx">overlay</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">OverlayView</span><span class="p">();</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">listenTo</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">subView</span><span class="p">.</span><span class="nx">overlay</span><span class="p">,</span> <span class="s1">&#39;submit&#39;</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="nx">overlaySubmitted</span><span class="p">);</span>
+  <span class="p">},</span>
+
+  <span class="nx">overlaySubmitted</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span> 
+
+    <span class="c1">// Wait until the browser goes back before pushing new state</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">listenToOnce</span><span class="p">(</span><span class="nx">Backbone</span><span class="p">,</span> <span class="s1">&#39;popstate&#39;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+      <span class="nx">App</span><span class="p">.</span><span class="nx">Router</span><span class="p">.</span><span class="nx">navigate</span><span class="p">(</span><span class="s1">&#39;newState&#39;</span><span class="p">);</span>
+    <span class="p">});</span>
+  <span class="p">}</span>
+<span class="p">});</span>
+</pre></div>
+</code></pre>
+<p>With this code, the history would look like this after submitting within the overlay:</p>
+<p><code>parent state</code> -&gt; <code>new state</code></p>
+<h3><a name="Recovering-from-refreshes" class="anchor" href="#Recovering-from-refreshes"><span class="header-link"></span></a>Recovering from refreshes</h3>
+<p><div data-image="microstate" class="balsamiq image-proxy balsamiq-yellow"></div>
+If a user refreshes on a microstate, you will likely want to restore them to the parent state. My approach to solve this problem was to detect if the user refreshed in a microstate during the parent view initialization via <code>history.event.state</code> and call <code>history.back()</code> to restore them to the original parent URL. If you stored the state correctly, you should be able to replicate the microstate if user goes <code>forward</code> in their browser after a refresh. Here is some sample parent view code to achieve this:</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">MyParentView</span> <span class="o">=</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+  <span class="nx">initialize</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+
+    <span class="c1">// When initialized, check if the user refreshed</span>
+    <span class="c1">// in a modal state, and if so bring them back to the</span>
+    <span class="c1">// parent state</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">history</span><span class="p">.</span><span class="nx">event</span><span class="p">.</span><span class="nx">state</span> <span class="o">&amp;&amp;</span>
+        <span class="nx">_</span><span class="p">.</span><span class="nx">keys</span><span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">history</span><span class="p">.</span><span class="nx">event</span><span class="p">.</span><span class="nx">state</span><span class="p">).</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+      <span class="nb">window</span><span class="p">.</span><span class="nx">history</span><span class="p">.</span><span class="nx">back</span><span class="p">();</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">});</span>
+</pre></div>
+</code></pre>
+<h2><a name="Implications-of-using-microstates" class="anchor" href="#Implications-of-using-microstates"><span class="header-link"></span></a>Implications of using microstates</h2>
+<p>I am excited by the potential of using microstates in web apps, particularly mobile web apps where screen real estate is a concern and navigating with the browser&#39;s back/forward is more compelling. By implementing microstates, the browser back/forward becomes first-class navigation and users can opt out of always having to use the HTML UI.</p>
+<p>However, microstates come with complexity. Exposing first class browser back/forward navigation allows users to quickly navigate between states and dependending on how much animation is involved, a user might break the animation. Additionally, there is not support for the History API in browsers like IE8 &amp; IE9 as well as some older Android browsers and Opera Mini, so depending on your user base, it might not make sense(check out <a href="http://caniuse.com/#feat=history">Can I use</a> for the full compatibility list). It may be worth making an abstraction for microstates which would eliminate much of the boilerplate code above and provide fallbacks for older browsers in order to reduce complexity.</p>
+<h2><a name="Conclusion" class="anchor" href="#Conclusion"><span class="header-link"></span></a>Conclusion</h2>
+<p>While microstates appear simple in initial concept by allowing the user to back out of an overlay state, they are somewhat complex to implement in a robust way. I am curious to hear the community&#39;s thoughts on this subject, and I hope you walk away with some new knowledge about the History API as well as some thoughts about potentially leveraging microstates in your app.</p>
+]]></description><link>http://chrisawren.com/posts/Implementing-microstates-in-Backbone-js</link><guid isPermaLink="true">http://chrisawren.com/posts/Implementing-microstates-in-Backbone-js</guid><category><![CDATA[code]]></category><dc:creator><![CDATA[Chris Wren]]></dc:creator><pubDate>Sun, 08 Dec 2013 00:00:00 GMT</pubDate></item><item><title><![CDATA[Intro to Grunt via the Cabin static site generator]]></title><description><![CDATA[<div class="center">
+  <img src="/images/posts/cabin/Cabinlogo.png" class="light-radius scale" alt="Cabin logo">
+</div>
+
+<p><a href="http://cabinjs.com">Cabin</a> is a static site generator powered by <a href="http://gruntjs.com">Grunt</a>. It uses the Grunt plugin ecosystem to automate all of its required build tasks, resulting in a great workflow. In this post, I will talk about how Grunt works in the context of generating static sites with Cabin.</p>
+<h2><a name="What-is-Grunt-" class="anchor" href="#What-is-Grunt-"><span class="header-link"></span></a>What is Grunt?</h2>
+<blockquote>
+<p>Grunt is a JavaScript task runner to automate dev tasks.</p>
+</blockquote>
+<p>Grunt allows users to automate repetitive tasks which are required for modern web development. When using Grunt, tasks like compiling templates, preprocessing styles, running tests, and building production versions of assets can all be configured in one place and run with a single command.</p>
+<p>Grunt is the best task automation tool because of its <a href="http://gruntjs.com/plugins">rich plugin ecosystem</a>. If there is a command line tool you use, there is likely a Grunt plugin which makes it easy to configure with the rest of your tasks.</p>
+<h2><a name="Getting-started-with-Cabin-and-Grunt" class="anchor" href="#Getting-started-with-Cabin-and-Grunt"><span class="header-link"></span></a>Getting started with Cabin and Grunt</h2>
+<p>Getting started with Cabin and Grunt only requires a few commands. First install Cabin and Grunt globally with this command:</p>
+<p><em>Note: To use Cabin you must have <a href="http://nodejs.org/">node.js</a>, <a href="http://python.org/">Python</a> (for <a href="http://pygments.org/">Pygments</a>), and <a href="http://compass-style.org/">Compass</a> installed.</em></p>
+<pre><code class="lang-bash"><div class="highlight"><pre>npm install -g cabin grunt-cli
+</pre></div>
+</code></pre>
+<p>Then scaffold a static site with Cabin using the <code>cabin new</code> command:</p>
+<p><em>Note: you can select either the jade or EJS template engine to follow this tutorial.</em></p>
+<pre><code class="lang-bash"><div class="highlight"><pre>cabin new site CabinJS/Candy --deployTask GitHub<span class="se">\ </span>Pages
+</pre></div>
+</code></pre>
+<p>Once the static site generator has been scaffolded, change to the <code>site</code> directory and generate the site using the default Grunt task(more on <a href="#default">default tasks</a> later):</p>
+<pre><code class="lang-bash"><div class="highlight"><pre><span class="nb">cd </span>site <span class="o">&amp;&amp;</span> grunt
+</pre></div>
+</code></pre>
+<h2><a name="Understanding-the-Gruntfile" class="anchor" href="#Understanding-the-Gruntfile"><span class="header-link"></span></a>Understanding the Gruntfile</h2>
+<p>Now that there is a working site generated using Grunt, let&#39;s open the <code>Gruntfile.js</code> file in the <code>site</code> folder and see how it&#39;s configured.</p>
+<p>After exposing the Gruntfile as a module via <code>module.exports</code> to be called with the <code>grunt</code> object, <code>grunt.initConfig</code> is called to configure the project based on the passed in config; this is where you will spend most of your time when using Grunt.</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">grunt</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">grunt</span><span class="p">.</span><span class="nx">initConfig</span><span class="p">({</span>
+    <span class="c1">// where you configure Grunt tasks</span>
+  <span class="p">});</span>
+<span class="p">};</span>
+</pre></div>
+</code></pre>
+<h3><a name="Configuring-tasks-to-build-the-site" class="anchor" href="#Configuring-tasks-to-build-the-site"><span class="header-link"></span></a>Configuring tasks to build the site</h3>
+<p>The first task configured is the <a href="https://github.com/CabinJS/grunt-pages">grunt-pages</a> plugin which builds HTML files from markdown posts and templates. To configure grunt-pages, the <code>pages</code> task specifies a <code>posts</code> target(more on <a href="#task-targets">targets</a> below) with a few required properties like the post <code>src</code> folder and the <code>dest</code> output folder as well as some optional properties like <code>pageSrc</code> which points to the folder containing page templates.</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="nx">pages</span><span class="o">:</span> <span class="p">{</span>
+  <span class="nx">posts</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">src</span><span class="o">:</span> <span class="s1">&#39;posts&#39;</span><span class="p">,</span>
+    <span class="nx">dest</span><span class="o">:</span> <span class="s1">&#39;dist&#39;</span><span class="p">,</span>
+    <span class="nx">layout</span><span class="o">:</span> <span class="s1">&#39;src/layouts/post.jade&#39;</span><span class="p">,</span>
+    <span class="nx">url</span><span class="o">:</span> <span class="s1">&#39;posts/:title/&#39;</span><span class="p">,</span>
+    <span class="nx">options</span><span class="o">:</span> <span class="p">{</span>
+      <span class="nx">pageSrc</span><span class="o">:</span> <span class="s1">&#39;src/pages&#39;</span><span class="p">,</span>
+      <span class="nx">data</span><span class="o">:</span> <span class="p">{</span>
+        <span class="nx">baseUrl</span><span class="o">:</span> <span class="s1">&#39;/&#39;</span>
+      <span class="p">},</span>
+      <span class="nx">pagination</span><span class="o">:</span> <span class="p">{</span>
+        <span class="nx">postsPerPage</span><span class="o">:</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="nx">listPage</span><span class="o">:</span> <span class="s1">&#39;src/pages/index.jade&#39;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</code></pre>
+<p>Next is the <a href="https://github.com/gruntjs/grunt-contrib-compass">grunt-contrib-compass</a> plugin which compiles <a href="http://sass-lang.com/">Sass</a> files into CSS. The task uses a <code>sassDir</code> option to specify where the source Sass files are located and a <code>cssDir</code> option to specify a directory to output the resulting CSS files.</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="nx">compass</span><span class="o">:</span> <span class="p">{</span>
+  <span class="nx">dist</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">options</span><span class="o">:</span> <span class="p">{</span>
+      <span class="nx">sassDir</span><span class="o">:</span> <span class="s1">&#39;src/styles&#39;</span><span class="p">,</span>
+      <span class="nx">cssDir</span><span class="o">:</span> <span class="s1">&#39;dist/styles&#39;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</code></pre>
+<p>The final build task is the <a href="https://github.com/gruntjs/grunt-contrib-copy">grunt-contrib-copy</a> plugin which copies all files that aren&#39;t processed by the above two tasks into the <code>dist</code> folder. Here, the Grunt <a href="http://gruntjs.com/configuring-tasks#files">file configuration</a> is used to copy an array of file <a href="http://gruntjs.com/configuring-tasks#globbing-patterns">globs</a> from the <code>src</code> directory into the <code>dest</code> directory maintaining their relative paths inside of <code>src</code> by using the <code>cwd</code> property.</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="nx">copy</span><span class="o">:</span> <span class="p">{</span>
+  <span class="nx">dist</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">files</span><span class="o">:</span> <span class="p">[{</span>
+      <span class="nx">expand</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+      <span class="nx">cwd</span><span class="o">:</span> <span class="s1">&#39;src&#39;</span><span class="p">,</span>
+      <span class="nx">dest</span><span class="o">:</span> <span class="s1">&#39;dist&#39;</span><span class="p">,</span>
+      <span class="nx">src</span><span class="o">:</span> <span class="p">[</span>
+        <span class="s1">&#39;images/**&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;scripts/**&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;styles/**.css&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;styles/fonts/**&#39;</span><span class="p">,</span>
+      <span class="p">]</span>
+    <span class="p">}]</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</code></pre>
+<p>Now that everything is configured to build the site, we need a way to automatically rebuild it when source files change. To accomplish this, the <a href="https://github.com/GruntJS/grunt-contrib-watch">grunt-contrib-watch</a> plugin maps a group of files to a task to be run when they change. For example, the <code>pages</code> watch target watches for changes to files in the <code>posts</code>, <code>src/layouts</code>, and <code>src/pages</code> folders then runs the <code>pages</code> task.</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="nx">watch</span><span class="o">:</span> <span class="p">{</span>
+  <span class="nx">pages</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">files</span><span class="o">:</span> <span class="p">[</span>
+      <span class="s1">&#39;posts/**&#39;</span><span class="p">,</span>
+      <span class="s1">&#39;src/layouts/**&#39;</span><span class="p">,</span>
+      <span class="s1">&#39;src/pages/**&#39;</span>
+    <span class="p">],</span>
+    <span class="nx">tasks</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;pages&#39;</span><span class="p">]</span>
+  <span class="p">},</span>
+  <span class="nx">compass</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">files</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;src/styles/**&#39;</span><span class="p">],</span>
+    <span class="nx">tasks</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;compass&#39;</span><span class="p">]</span>
+  <span class="p">},</span>
+  <span class="nx">copy</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">files</span><span class="o">:</span> <span class="p">[</span>
+      <span class="s1">&#39;src/images/**&#39;</span><span class="p">,</span>
+      <span class="s1">&#39;src/scripts/**&#39;</span><span class="p">,</span>
+      <span class="s1">&#39;src/styles/**.css&#39;</span><span class="p">,</span>
+      <span class="s1">&#39;src/styles/fonts/**&#39;</span>
+    <span class="p">],</span>
+    <span class="nx">tasks</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;copy&#39;</span><span class="p">]</span>
+  <span class="p">},</span>
+  <span class="nx">dist</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">files</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;dist/**&#39;</span><span class="p">],</span>
+    <span class="nx">options</span><span class="o">:</span> <span class="p">{</span>
+      <span class="nx">livereload</span><span class="o">:</span> <span class="kc">true</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</code></pre>
+<p>There is one target, <code>dist</code>, which doesn&#39;t run any tasks when files change, instead it <a href="http://livereload.com/">LiveReloads</a> the browser. Since it looks at the files-to-be-served in the <code>dist</code> folder instead of source files, it performs the proper action based on the file extension. Compiled <code>.css</code> files and images are directly injected into the page while everything else triggers a browser refresh.</p>
+<h4><a name="Task-targets" class="anchor" href="#Task-targets"><span class="header-link"></span></a>Task targets</h4>
+<p>Most grunt plugins are multi tasks, which means they support multiple discrete configurations or <em>targets</em> for the task. For example, the above <code>watch</code> task configures multiple targets to each run a different task based on the location of the changed file.</p>
+<p>You could run the first target with the <code>grunt watch:pages</code> command or the second target with the <code>grunt watch:compass</code> command. Runnning <code>grunt watch</code> with no target specified will run all targets in the order specified in the config.</p>
+<h3><a name="Server-task-configuration" class="anchor" href="#Server-task-configuration"><span class="header-link"></span></a>Server task configuration</h3>
+<p>To serve the site during development, the <a href="https://github.com/GruntJS/grunt-contrib-connect">grunt-contrib-connect</a> plugin is used to start a static file server. In the config, the <code>hostname</code> and <code>port</code> number are specified to serve the site, as well as a <code>base</code> folder of files to serve, and a boolean to opt in for injecting the LiveReload script.</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="nx">connect</span><span class="o">:</span> <span class="p">{</span>
+  <span class="nx">dist</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">options</span><span class="o">:</span> <span class="p">{</span>
+      <span class="nx">port</span><span class="o">:</span> <span class="mi">5455</span><span class="p">,</span>
+      <span class="nx">hostname</span><span class="o">:</span> <span class="s1">&#39;0.0.0.0&#39;</span><span class="p">,</span>
+      <span class="nx">base</span><span class="o">:</span> <span class="s1">&#39;dist&#39;</span><span class="p">,</span>
+      <span class="nx">livereload</span><span class="o">:</span> <span class="kc">true</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</code></pre>
+<p>To view the site once the server is started, the <a href="https://github.com/jsoverson/grunt-open">grunt-open</a> plugin opens a browser tab to the site&#39;s root url.</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="nx">open</span><span class="o">:</span> <span class="p">{</span>
+  <span class="nx">dist</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">path</span><span class="o">:</span> <span class="s1">&#39;http://localhost:5455&#39;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</code></pre>
+<h3><a name="Deployment-task-configuration" class="anchor" href="#Deployment-task-configuration"><span class="header-link"></span></a>Deployment task configuration</h3>
+<p>The <a href="https://github.com/GruntJS/grunt-contrib-clean">grunt-contrib-clean</a> plugin is configured to remove all files in the <code>dist</code> folder so that old files are removed when the site is rebuilt.</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="nx">clean</span><span class="o">:</span> <span class="p">{</span>
+  <span class="nx">dist</span><span class="o">:</span> <span class="s1">&#39;dist&#39;</span>
+<span class="p">}</span>
+</pre></div>
+</code></pre>
+<p>Finally, the <a href="https://github.com/tschaub/grunt-gh-pages">grunt-gh-pages</a> plugin is configured to deploy the site to GitHub. All files in the base <code>dist</code> directory are pushed to <a href="http://pages.github.com/">GitHub Pages</a> when this task is run. </p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="s1">&#39;gh-pages&#39;</span><span class="o">:</span> <span class="p">{</span>
+  <span class="nx">options</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">base</span><span class="o">:</span> <span class="s1">&#39;dist&#39;</span>
+  <span class="p">},</span>
+  <span class="nx">src</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;**&#39;</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</code></pre>
+<h2><a name="Custom-tasks" class="anchor" href="#Custom-tasks"><span class="header-link"></span></a>Custom tasks</h2>
+<p>Now that all the plugin tasks are configured, there needs to be a simple interface of custom tasks to run sets of plugin tasks in a particular order. Cabin uses four custom tasks, <code>build</code>, <code>deploy</code>, <code>server</code>, and <code>default</code> to create an easy interface to build a site.</p>
+<h3><a name="build" class="anchor" href="#build"><span class="header-link"></span></a>build</h3>
+<p>Cabin&#39;s <code>build</code> task cleans the target folder, creates HTML pages, preprocesses styles, and then copies assets into the dist folder to be served. The custom <code>build</code> task has become a convention for Gruntfiles, so it is usually a good idea to have <code>grunt build</code> run a sequence of tasks to create a servable/deployable version of your project.</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="nx">grunt</span><span class="p">.</span><span class="nx">registerTask</span><span class="p">(</span><span class="s1">&#39;build&#39;</span><span class="p">,</span> <span class="p">[</span>
+  <span class="s1">&#39;clean&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;pages&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;compass&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;copy&#39;</span>
+<span class="p">]);</span>
+</pre></div>
+</code></pre>
+<h3><a name="deploy" class="anchor" href="#deploy"><span class="header-link"></span></a>deploy</h3>
+<p>Cabin&#39;s <code>deploy</code> task simply runs <code>build</code> to create the site and then <code>gh-pages</code> to deploy it.</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="nx">grunt</span><span class="p">.</span><span class="nx">registerTask</span><span class="p">(</span><span class="s1">&#39;deploy&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;build&#39;</span><span class="p">,</span> <span class="s1">&#39;gh-pages&#39;</span><span class="p">]);</span>
+</pre></div>
+</code></pre>
+<h3><a name="server" class="anchor" href="#server"><span class="header-link"></span></a>server</h3>
+<p>Cabin&#39;s <code>server</code> task runs the <code>build</code> task, starts a connect server, opens a browser tab to view the site, and then watchs source files for any changes so that the site can be rebuilt.</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="nx">grunt</span><span class="p">.</span><span class="nx">registerTask</span><span class="p">(</span><span class="s1">&#39;server&#39;</span><span class="p">,</span> <span class="p">[</span>
+  <span class="s1">&#39;build&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;connect&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;open&#39;</span><span class="p">,</span>
+  <span class="s1">&#39;watch&#39;</span>
+<span class="p">]);</span>
+</pre></div>
+</code></pre>
+<h3><a name="default" class="anchor" href="#default"><span class="header-link"></span></a>default</h3>
+<p>The <code>default</code> task is run when a user enters <code>grunt</code> into the terminal, so this task should capture the most common use case. In Cabin&#39;s Gruntfile, the <code>server</code> task is  aliased as the <code>default</code>.</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="nx">grunt</span><span class="p">.</span><span class="nx">registerTask</span><span class="p">(</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="s1">&#39;server&#39;</span><span class="p">);</span>
+</pre></div>
+</code></pre>
+<h2><a name="Loading-tasks" class="anchor" href="#Loading-tasks"><span class="header-link"></span></a>Loading tasks</h2>
+<p>Cabin uses <a href="https://sindresorhus/load-grunt-tasks"><code>load-grunt-tasks</code></a> to load all Grunt tasks instead of manually calling <code>grunt.loadNpmTask</code> on each grunt task.</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;load-grunt-tasks&#39;</span><span class="p">)(</span><span class="nx">grunt</span><span class="p">);</span>
+</pre></div>
+</code></pre>
+<h2><a name="Advanced-Grunt-resources" class="anchor" href="#Advanced-Grunt-resources"><span class="header-link"></span></a>Advanced Grunt resources</h2>
+<p>I published a blog post about <a href="http://chrisawren.com/posts/Advanced-Grunt-tooling">Advanced Grunt Tooling</a> if you feel like taking a deeper dive and learning how to optimize your personal Grunt usage. I also suggest using <a href="http://yeoman.io">yeoman</a> to generate a project to see some serious Gruntfiles in action. If you are curious about how Grunt works, check out the <a href="http://gruntjs.com/api/grunt">Grunt API docs</a>.</p>
+<h2><a name="Conclusion" class="anchor" href="#Conclusion"><span class="header-link"></span></a>Conclusion</h2>
+<p>I hope this post helps you understand Grunt better by seeing a real life example which demonstrates many core Grunt concepts. I wish you the best in utilizing Grunt to make your dev workflow better!</p>
+]]></description><link>http://chrisawren.com/posts/Intro-to-Grunt-via-the-Cabin-static-site-generator</link><guid isPermaLink="true">http://chrisawren.com/posts/Intro-to-Grunt-via-the-Cabin-static-site-generator</guid><category><![CDATA[code]]></category><dc:creator><![CDATA[Chris Wren]]></dc:creator><pubDate>Tue, 05 Nov 2013 08:00:00 GMT</pubDate></item><item><title><![CDATA[Getting high on your own Svpply]]></title><description><![CDATA[<p><img src="/images/posts/svpply/svpply.jpg" alt="Svpply">
+Shopping socially on the Internet is the best way to discover stylish products from across the world. Using social shopping platforms, consumers can browse recommended products from multiple stores in a single location. In this post, I will discuss a social shopping platform called <a href="https://svpply.com/">Svpply</a>.</p>
+<h2><a name="Svpply" class="anchor" href="#Svpply"><span class="header-link"></span></a>Svpply</h2>
+<blockquote>
+<p>Svpply helps you find the products you love, from the people and stores you find interesting.</p>
+</blockquote>
+<p>Svpply functions as a product discovery and aggregation service. Users <code>Discover</code> products from stores across the web, and <code>Want</code> products discovered by other users. The most recently discovered and wanted products get the highest ranking on a number of categorized shop pages.</p>
+<p>While you can&#39;t buy products directly on Svpply, you can see the product&#39;s price and the store where it was sourced from. Because of this, Svpply is a great place to aggregate products for later purchase.</p>
+<p>Svpply&#39;s two stand out traits are its tasteful user community and minimalist interface.</p>
+<h2><a name="Svpply-s-Users" class="anchor" href="#Svpply-s-Users"><span class="header-link"></span></a>Svpply&#39;s Users</h2>
+<p>From my observations, Svpply&#39;s users are typically in the 18-35 age group with their personal websites being Tumblr blogs. Many of the aggregated products are flashy and bold, appealling to this younger demographic. These bold products on Svpply are perfect for social shopping, as generic products can easily be found at name brand retailers.</p>
+<p>In addition to the young user demographic, reps from ecommerce startups use Svpply as a platform to expose users to their products. These startup brands would find it hard to get noticed in a Google or Pinterest search, and get better exposure on this younger platform with a user base that values more experimental products.</p>
+<h2><a name="Svpply-s-Interface" class="anchor" href="#Svpply-s-Interface"><span class="header-link"></span></a>Svpply&#39;s Interface</h2>
+<div class="img-block">
+  <img src="/images/posts/svpply/SvpplyNav.jpg" alt="Svpply navigation">
+</div>
+
+<p>Svpply has a minimalist interface which focuses on products. The black and white theme combined with the lack of popups/social connectivity harassment lets users focus on discovery.</p>
+<p>The shopping navigation has a category hierarchy concept where you start at a top level category like Men&#39;s and can go into Men&#39;s -&gt; Shoes, and then Men&#39;s -&gt; Shoes -&gt; Athletic. The hierarchy is color-coded so that users build associations between categories and color.</p>
+<h3><a name="Product-list-page-on-mobile" class="anchor" href="#Product-list-page-on-mobile"><span class="header-link"></span></a>Product list page on mobile</h3>
+<div class="img-block">
+<img src="/images/posts/svpply/SvpplyShop.jpg" alt="Svpply shopping">
+</div>
+
+<p>Svpply has the most minimalist mobile product list page I have seen. They simply display the product image, and in small text below it, the price and number of wants. It is the only shopping platform I have seen that doesn&#39;t display the name of the product on the list page.</p>
+<h2><a name="Interacting-with-products-on-Svpply" class="anchor" href="#Interacting-with-products-on-Svpply"><span class="header-link"></span></a>Interacting with products on Svpply</h2>
+<div class="img-block">
+<img src="/images/posts/svpply/SvpplyProduct.jpg" alt="Svpply Product">
+</div>
+
+<p>Svpply presents three actions to a user when they click on a product. Firstly, users can <code>Want</code> an item and add it to a general list of wanted items. This is the feature I use most as it is the easiest way to save a product. Users can also add a product to a <code>Collection</code> so that they can categorize wanted products. Finally, there is a button to <code>Buy</code> the product on the store&#39;s website.</p>
+<p>I typically <code>Want</code> products that I could see myself potentially buying and then browse my wanted list when I feel like buying something.</p>
+<h2><a name="Auto-Aggregated-Stores" class="anchor" href="#Auto-Aggregated-Stores"><span class="header-link"></span></a>Auto-Aggregated Stores</h2>
+<p><div class="img-block">
+<img src="/images/posts/svpply/SvpplyStore.jpg" alt="Svpply Stores">
+</div>
+Svpply automatically aggregates products into stores. This allows users to browse everything saved to Svpply from a site like <a href="http://mrporter.com">mrporter.com</a> in a single listing.</p>
+<h2><a name="Svpply-s-Buy-Later-Bookmarklet" class="anchor" href="#Svpply-s-Buy-Later-Bookmarklet"><span class="header-link"></span></a>Svpply&#39;s Buy Later Bookmarklet</h2>
+<p><img src="/images/posts/svpply/SvpplyBuyItLater.jpg" alt="">
+Similar to Pinterest, Svpply has a <a href="https://svpply.com/extras/buy_later">browser bookmarklet</a> that lets users save products to their Svpply. It&#39;s called <code>Buy Later</code> which I think should be renamed to <code>Add To Svpply</code> and have a Svpply icon so that users know that it refers to Svpply. Functionally, the bookmarklet is powerful as it automatically picks up the item&#39;s price and then prompts the user to choose a category for the item.</p>
+<h2><a name="Features-I-would-like-to-see" class="anchor" href="#Features-I-would-like-to-see"><span class="header-link"></span></a>Features I would like to see</h2>
+<p>As a heavy user of Svpply, I have a few ideas about features that would improve the experience.</p>
+<h3><a name="Auto-filter-feed" class="anchor" href="#Auto-filter-feed"><span class="header-link"></span></a>Auto filter feed</h3>
+<p>When I show up to the Svpply app, I am often shown women&#39;s products from the stores and people that I follow. The feed should know that I only view men&#39;s products and should default to hiding women&#39;s products.</p>
+<h3><a name="Auto-collections" class="anchor" href="#Auto-collections"><span class="header-link"></span></a>Auto collections</h3>
+<p>It would be cool if all the shirts I <code>Want</code> were automatically aggregated into a <code>Shirts</code> collection. I could then make a collection of a certain type of shirt like <code>Graphic Tees</code>. I am too lazy to make new collections for every category of product, but I would still like some order when browsing my wanted products rather than a massive list of everything I have saved.</p>
+<h3><a name="Out-Of-Stock-awareness" class="anchor" href="#Out-Of-Stock-awareness"><span class="header-link"></span></a>Out Of Stock awareness</h3>
+<p>I would like to be able to see if a product is still available, because I often find a product I like only to land on a 404 Not Found page or to find out it is out of stock.</p>
+<h2><a name="Conclusion" class="anchor" href="#Conclusion"><span class="header-link"></span></a>Conclusion</h2>
+<p>Svpply is my favorite place to shop because of its community, interface, and availability on every platform. I highly recommend it for discovering cool products from stores across the Internet. <a href="https://svpply.com/chrisawren">Follow me</a> on Svpply!</p>
+]]></description><link>http://chrisawren.com/posts/Getting-high-on-your-own-Svpply</link><guid isPermaLink="true">http://chrisawren.com/posts/Getting-high-on-your-own-Svpply</guid><category><![CDATA[commerce]]></category><dc:creator><![CDATA[Chris Wren]]></dc:creator><pubDate>Sun, 04 Aug 2013 07:00:00 GMT</pubDate></item><item><title><![CDATA[Tools and Strategies for node.js Development on GitHub]]></title><description><![CDATA[<p><a href="http://octodex.github.com/"><img src="/images/posts/github/front-end-conftocat.png" alt="octocat"></a>
+When developing open source node.js projects on GitHub, there are tools and strategies which you can use to streamline development and increase the quality of your repo. In this post, I will share what I have learned about these topics during my experience on GitHub.</p>
+<h2><a name="Continuously-Integrating-new-code" class="anchor" href="#Continuously-Integrating-new-code"><span class="header-link"></span></a>Continuously Integrating new code</h2>
+<p><div class="img-block">
+  <img src="https://www.openshift.com/sites/default/files/images/travis-logo.png" alt="">
+</div>
+If you have tests for your project, you will want them run whenever a commit is pushed to your repo or a pull request is proposed. Instead of manually pulling down new code and running the tests yourself, you can use <a href="https://travis-ci.org/">Travis CI</a> to automatically run your test suite in a clean environment. This helps you determine if new code breaks existing functionality and lets you merge branches and pull requests without having to test them locally.</p>
+<p>Once your repo is integrated with Travis, pull requests will include a message stating if the test suite passed or failed. The following message will appear if the test suite passes:
+<img src="/images/posts/github/TravisBuildPassed.png" alt="TravisBuild" class="inline-image"></p>
+<h3><a name="Getting-Travis-integrated-with-your-repo" class="anchor" href="#Getting-Travis-integrated-with-your-repo"><span class="header-link"></span></a>Getting Travis integrated with your repo</h3>
+<p>To get Travis integrated with your repo, first add the following <code>.travis.yml</code> file to your root folder:</p>
+<pre><code class="lang-yaml"><div class="highlight"><pre><span class="l-Scalar-Plain">language</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">node_js</span>
+<span class="l-Scalar-Plain">node_js</span><span class="p-Indicator">:</span>
+  <span class="p-Indicator">-</span> <span class="s">&quot;0.10&quot;</span>
+  <span class="p-Indicator">-</span> <span class="s">&quot;0.8&quot;</span>
+<span class="l-Scalar-Plain">notifications</span><span class="p-Indicator">:</span>
+  <span class="l-Scalar-Plain">email</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">false</span>
+</pre></div>
+</code></pre>
+<p>The first and second properties of this file tell Travis to run your tests in node versions <code>.10</code> and <code>.8</code>.  The final property opts out of email notifications which you likely won&#39;t want initially. </p>
+<p>After adding the <code>.travis.yml</code> to your repo, sign into Travis, then sync your repo. Now on every commit, Travis will run the commands listed in the <code>before_script</code> property and then run your package.json&#39;s <code>scripts.test</code> property as a terminal command.</p>
+<h3><a name="Travis-Status-Badge" class="anchor" href="#Travis-Status-Badge"><span class="header-link"></span></a>Travis Status Badge</h3>
+<p><a href="https://travis-ci.org/CabinJS/cabin"><img src="https://travis-ci.org/CabinJS/Cabin.png" alt="Build Status"></a></p>
+<p>You should also get a <a href="http://about.travis-ci.org/docs/user/status-images/">Travis status badge</a> for your repo so that contributors will know if the latest commit in master passed the test suite.</p>
+<h2><a name="Keeping-up-with-dependencies" class="anchor" href="#Keeping-up-with-dependencies"><span class="header-link"></span></a>Keeping up with dependencies</h2>
+<p><a href="https://gemnasium.com/ChrisWren/grunt-nodemon"><img src="https://gemnasium.com/ChrisWren/grunt-nodemon.png" alt="Dependency Status"></a></p>
+<p>Keeping up with dependencies is no fun. Using <a href="https://gemnasium.com">gemnasium</a>, you can have a badge in your README which will alert contributors when your project&#39;s dependencies are out of date.</p>
+<h2><a name="Displaying-your-module-s-latest-version-in-npm" class="anchor" href="#Displaying-your-module-s-latest-version-in-npm"><span class="header-link"></span></a>Displaying your module&#39;s latest version in npm</h2>
+<p><a href="http://badge.fury.io/js/grunt-pages"><img src="https://badge.fury.io/js/grunt-pages.png" alt="NPM version"></a></p>
+<p>Using <a href="http://badge.fury.io/">Gemfury</a> you can get a badge to display the latest version of your project in npm. This is helpful for contributors to see what version of your code was last pushed to npm and for visitors to easily check if they have the latest version.</p>
+<h2><a name="Changelog" class="anchor" href="#Changelog"><span class="header-link"></span></a>Changelog</h2>
+<p>When a contributor shows up to your repo, it is helpful to have a Changelog where they can track the changes that have been made for each new version of your project. This is especially helpful for debugging issues because you can easily trace the history of your project&#39;s features.</p>
+<p>Here is an example Changelog:</p>
+<p><code>0.1.0</code> - Altered post api to expose all properties on a <code>post</code> object.</p>
+<p><code>0.0.1</code> - Added bug fix for posts with special characters.</p>
+<p><code>0.0.0</code> - Initial release.</p>
+<p>I usually put the Changelog at the bottom of my README.md, but I have seen people also use a CHANGELOG.md or HISTORY.md file for larger projects.</p>
+<h2><a name="Semantic-Versioning" class="anchor" href="#Semantic-Versioning"><span class="header-link"></span></a>Semantic Versioning</h2>
+<p>When <a href="http://semver.org/">semanticly versioning</a> your project, users will automatically get new versions with bug fixes &amp; patches but not versions with API breaking changes. Before looking into the usage of semantic versioning, it is important to understand why you would want to version your module in a specific way.</p>
+<h3><a name="Behavior-of----save--d-modules" class="anchor" href="#Behavior-of----save--d-modules"><span class="header-link"></span></a>Behavior of <code>--save</code>&#39;d modules</h3>
+<p>When saving installed modules from npm using the <code>--save</code> or <code>--save-dev</code> flags, the default behavior is to have a <code>~</code> in front of the module&#39;s version number in the package.json. This <code>~</code> prefix will pick up new patch versions which modify the final section of the version number. For example, if there were the following versions available for a module: <code>0.0.1</code>, <code>0.0.2</code>, and <code>0.1.0</code> and a project had <code>~0.0.1</code> specified in its package.json, when someone runs <code>npm install</code> from a clean folder they would get version <code>0.0.2</code>. </p>
+<h3><a name="Semantic-Versioning-in-practice" class="anchor" href="#Semantic-Versioning-in-practice"><span class="header-link"></span></a>Semantic Versioning in practice</h3>
+<p>The important thing to do as a node.js module author is to update the second number, or minor version, for API breaking changes and edit the third number, or patch version, for bug fixes.
+When users get new patch versions because of the <code>~</code> in front of your module&#39;s version number, it should not break their current usage of the module.</p>
+<p><em>Note: Changing the minor version for API-breaking changes only occurs before the stable public API or 1.0.0 release. Refer to the <a href="http://semver.org/">semantic versioning document</a> when releasing the stable public API</em>.</p>
+<h2><a name="README" class="anchor" href="#README"><span class="header-link"></span></a>README</h2>
+<h3><a name="Blockquote-project-summary" class="anchor" href="#Blockquote-project-summary"><span class="header-link"></span></a>Blockquote project summary</h3>
+<blockquote>
+<p>Brightens your day by opening a browser tab to a music video</p>
+</blockquote>
+<p>When showing up to a project, potential users want to quickly determine what it offers them. Using a <a href="http://daringfireball.net/projects/markdown/syntax#blockquote">markdown blockquote</a> at the top of your README is a clear way to display a summary of your project to a new user.</p>
+<h3><a name="Minimal-Usage" class="anchor" href="#Minimal-Usage"><span class="header-link"></span></a>Minimal Usage</h3>
+<p>Once you&#39;ve convinced the user to try out your project, it is valuable to give them instructions of how to use it with minimal configuration. Later in your documentation you can embellish in more extensive examples, but it is important to get a new user started quickly so that they get invested in the project.</p>
+<h3><a name="Explicity-define-the-API" class="anchor" href="#Explicity-define-the-API"><span class="header-link"></span></a>Explicity define the API</h3>
+<p>Users don&#39;t want to look at your source code to learn how to use your project. By explicitly defining parameter types, descriptions, and default values(if any) of your methods parameters/properties, you can save yourself time responding to issues submitted by confused users. I like to use the same syntax as the <a href="http://nodejs.org/api/">node.js docs</a> when defining methods, here is an example method definition for <code>mymodule</code>:</p>
+<h3><a name="mymodule-inputString---color----callback--" class="anchor" href="#mymodule-inputString---color----callback--"><span class="header-link"></span></a>mymodule(inputString, [color], [callback])</h3>
+<p>When defining parameters, I like to first define its type, then any default values, then describe it. Sometimes the parameter warrants an example use case to illustrate its usage relative to other parameters. Here are example parameter definitions for <code>mymodule</code>:</p>
+<h4><a name="inputString" class="anchor" href="#inputString"><span class="header-link"></span></a>inputString</h4>
+<p>Type: <code>String</code></p>
+<p>Description of the <code>inputString</code> parameter.</p>
+<h4><a name="color" class="anchor" href="#color"><span class="header-link"></span></a>color</h4>
+<p>Type: <code>String</code>
+Default: <code>&#39;blue&#39;</code></p>
+<p>Description of the <code>color</code> parameter.</p>
+<h4><a name="callback" class="anchor" href="#callback"><span class="header-link"></span></a>callback</h4>
+<p>Type: <code>Function</code></p>
+<p>Description of the <code>callback</code> parameter. This parameter can be used as the second parameter if the <code>color</code> is omitted. Here is an example which illustrates this usage:</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="nx">mymodule</span><span class="p">(</span><span class="s1">&#39;Hello World!&#39;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s1">&#39;I am in a callback :)&#39;</span><span class="p">);</span>
+<span class="p">});</span>
+</pre></div>
+</code></pre>
+<h2><a name="Issue-Driven-Development" class="anchor" href="#Issue-Driven-Development"><span class="header-link"></span></a>Issue Driven Development</h2>
+<p>Issues are the most transparent way to keep track of a project&#39;s development. They are a great place to solicit feedback from contributors and users before implementing new features, as well as a place to track to-dos. Having issues on a project that suggest future development invites new contributors to get involved and resolve those issues.</p>
+<h2><a name="Conclusion" class="anchor" href="#Conclusion"><span class="header-link"></span></a>Conclusion</h2>
+<p>I hope these tips help you improve your open source workflow and create sexy repos :). See you on <a href="https://github.com/ChrisWren">GitHub</a>!</p>
+]]></description><link>http://chrisawren.com/posts/Tools-and-Strategies-for-node-js-Development-on-GitHub</link><guid isPermaLink="true">http://chrisawren.com/posts/Tools-and-Strategies-for-node-js-Development-on-GitHub</guid><category><![CDATA[code]]></category><dc:creator><![CDATA[Chris Wren]]></dc:creator><pubDate>Fri, 05 Jul 2013 07:00:00 GMT</pubDate></item><item><title><![CDATA[Advanced Grunt tooling]]></title><description><![CDATA[<p><div class="center">
+<img src="http://www.jonathanjeter.com/images/gruntjs.png" alt="http://www.jonathanjeter.com/images/gruntjs.png">
+</div>
+<a href="http://gruntjs.com/">Grunt</a> has made web development more enjoyable. By automating repetitive tasks, it has allowed web developers to focus on building features rather than copying, compiling, and configuring.</p>
+<p>In this post, I will share some advanced tooling with Grunt which will help you use it to its full potential.</p>
+<h2><a name="Bash-functions" class="anchor" href="#Bash-functions"><span class="header-link"></span></a>Bash functions</h2>
+<p>When using grunt frequently, it is nice to have shortcuts for installing plugins. These two bash functions, when included in your <code>~/.bash_profile</code>, will allow you to quickly install grunt plugins:</p>
+<pre><code class="lang-bash"><div class="highlight"><pre><span class="c"># Install a grunt plugin and save to devDependencies</span>
+<span class="k">function </span>gi<span class="o">()</span> <span class="o">{</span>
+  npm install --save-dev grunt-<span class="s2">&quot;$@&quot;</span>
+<span class="o">}</span>
+
+<span class="c"># Install a grunt-contrib plugin and save to devDependencies</span>
+<span class="k">function </span>gci<span class="o">()</span> <span class="o">{</span>
+  npm install --save-dev grunt-contrib-<span class="s2">&quot;$@&quot;</span>
+<span class="o">}</span>
+</pre></div>
+</code></pre>
+<p>The first bash function can be used as follows to install <a href="https://github.com/ChrisWren/grunt-nodemon">grunt-nodemon</a>:</p>
+<pre><code class="lang-bash"><div class="highlight"><pre>gi nodemon
+</pre></div>
+</code></pre>
+<p>The second function is an additional shortcut to install contrib plugins and can be used as follows to install <a href="https://github.com/gruntjs/grunt-contrib-watch">grunt-contrib-watch</a>:</p>
+<pre><code class="lang-bash"><div class="highlight"><pre>gci watch
+</pre></div>
+</code></pre>
+<h2><a name="Loading-all-grunt-tasks-automatically" class="anchor" href="#Loading-all-grunt-tasks-automatically"><span class="header-link"></span></a>Loading all grunt tasks automatically</h2>
+<p>Every time you want a new grunt plugin, you typically have to add a <code>grunt.loadNpmTasks</code> call to your Gruntfile. This is a hassle and results in unecessary maintenance when you want to add and remove grunt plugins.</p>
+<p>Thankfully there is a node module, <a href="https://github.com/tkellen/node-matchdep">matchdep</a>, which reads your <code>package.json</code> file and extracts all of the dependencies that match a specified minimatch string. To automate task loading, first install matchdep with the following command:</p>
+<pre><code class="lang-bash"><div class="highlight"><pre>npm install --save-dev matchdep
+</pre></div>
+</code></pre>
+<p>Then add this line to your Gruntfile which will run <code>grunt.loadNpmTasks</code> on each grunt plugin found in your package.json:</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;matchdep&#39;</span><span class="p">).</span><span class="nx">filterDev</span><span class="p">(</span><span class="s1">&#39;grunt-*&#39;</span><span class="p">).</span><span class="nx">forEach</span><span class="p">(</span><span class="nx">grunt</span><span class="p">.</span><span class="nx">loadNpmTasks</span><span class="p">);</span>
+</pre></div>
+</code></pre>
+<p>Now you will never have to manually add and remove <code>grunt.loadNpmTasks</code> :).</p>
+<h2><a name="Aliasing-tasks" class="anchor" href="#Aliasing-tasks"><span class="header-link"></span></a>Aliasing tasks</h2>
+<p>In grunt, you can alias groups of tasks and make a more semantic interface for you and your development team.</p>
+<p>For example, you could write a custom <code>test</code> grunt task like the following which would lint your code and run all of your <a href="casperjs.org">CasperJS</a> and <a href="pivotal.github.io/jasmine/">Jasmine</a> tests:</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="nx">grunt</span><span class="p">.</span><span class="nx">registerTask</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;jshint&#39;</span><span class="p">,</span> <span class="s1">&#39;ghost:all&#39;</span><span class="p">,</span> <span class="s1">&#39;jasmine:all&#39;</span><span class="p">]);</span>
+</pre></div>
+</code></pre>
+<p>You could also write a development build task to compile your <a href="http://sass-lang.com/">Sass</a> and <a href="handlebarsjs.com">Handlebars</a> templates and copy your scripts into a dev folder:</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="nx">grunt</span><span class="p">.</span><span class="nx">registerTask</span><span class="p">(</span><span class="s1">&#39;build:dev&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;compass:dev&#39;</span><span class="p">,</span> <span class="s1">&#39;handlebars:dev&#39;</span><span class="p">,</span> <span class="s1">&#39;copy:scripts&#39;</span><span class="p">]);</span>
+</pre></div>
+</code></pre>
+<p>It is helpful to have the most common group of tasks aliased as the default, so that developers can simply enter <code>grunt</code> into the command line. The following default task would capture the most common use case by building your project and then watching for changes:</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="nx">grunt</span><span class="p">.</span><span class="nx">registerTask</span><span class="p">(</span><span class="s1">&#39;default&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;build:dev&#39;</span><span class="p">,</span> <span class="s1">&#39;watch&#39;</span><span class="p">]);</span>
+</pre></div>
+</code></pre>
+<h2><a name="Verbose-mode---debugging" class="anchor" href="#Verbose-mode---debugging"><span class="header-link"></span></a>Verbose mode &amp; debugging</h2>
+<p>For a long time in my early grunting I didn&#39;t know you could see more task output by adding the <code>-v</code> flag to a command. Some tasks opt for extended logging in verbose mode, and in that case, setting this flag can expose more information about a task if it&#39;s not functioning as expected.</p>
+<p>If you need to look further into debugging a task by seeing a stack trace, you can also set the <code>--stack</code> flag.</p>
+<h3><a name="Debugging-during-grunt-development" class="anchor" href="#Debugging-during-grunt-development"><span class="header-link"></span></a>Debugging during grunt development</h3>
+<p>One of the challenging aspects of build process development is knowing if your configuration works as expected from a clean state. A useful plugin for debugging this situation is <a href="https://github.com/gruntjs/grunt-contrib-clean">grunt-contrib-clean</a>.</p>
+<p>Using the <code>clean</code> task, you can clear out the destination folders of your build tasks and execute them from the perspective of a developer who will pull down your changes with an empty destination folder.</p>
+<h2><a name="Invest-in-a-good-watch" class="anchor" href="#Invest-in-a-good-watch"><span class="header-link"></span></a>Invest in a good watch</h2>
+<p><a href="https://github.com/gruntjs/grunt-contrib-watch">grunt-contrib-watch</a> is an <strong>essential</strong> plugin to achieve an efficient development workflow. When used properly, you can have all of your development tasks triggered via <code>watch</code>.</p>
+<p>Here is an example which illustrates what you can achieve with a properly configured watch task:</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="nx">watch</span><span class="o">:</span> <span class="p">{</span>
+  <span class="nx">scripts</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">files</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;*.js&#39;</span><span class="p">,</span> <span class="s1">&#39;src/**.js&#39;</span><span class="p">],</span>
+    <span class="nx">tasks</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;jshint:all&#39;</span><span class="p">,</span> <span class="s1">&#39;copy:scripts&#39;</span><span class="p">],</span>
+    <span class="nx">options</span><span class="o">:</span> <span class="p">{</span>
+      <span class="nx">livereload</span><span class="o">:</span> <span class="kc">true</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  <span class="nx">compass</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">files</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;src/styles/**&#39;</span><span class="p">],</span>
+    <span class="nx">tasks</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;compass:dev&#39;</span><span class="p">],</span>
+    <span class="nx">options</span><span class="o">:</span> <span class="p">{</span>
+      <span class="nx">livereload</span><span class="o">:</span> <span class="kc">true</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  <span class="nx">handlebars</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">files</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;src/templates/**&#39;</span><span class="p">],</span>
+    <span class="nx">tasks</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;handlebars:dev&#39;</span><span class="p">],</span>
+    <span class="nx">options</span><span class="o">:</span> <span class="p">{</span>
+      <span class="nx">livereload</span><span class="o">:</span> <span class="kc">true</span>
+    <span class="p">}</span>
+  <span class="p">},</span>
+  <span class="nx">jasmine</span><span class="o">:</span> <span class="p">{</span>
+    <span class="nx">files</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;test/spec/**&#39;</span><span class="p">],</span>
+    <span class="nx">tasks</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;jshint:all&#39;</span><span class="p">,</span> <span class="s1">&#39;jasmine:all&#39;</span><span class="p">]</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</code></pre>
+<p>Using the above config, when a file is modified, the tasks related to the file are run. Looking at the <code>scripts</code> target, when a source script file is saved, the script files are linted, copied to the dev folder to be served, and the livereload event is triggered to refresh your browser. When a jasmine test spec is saved, the code is linted and the tests are run, but the browser is not livereloaded as no source files have changed.</p>
+<h2><a name="Using-variables-in-your-configuration" class="anchor" href="#Using-variables-in-your-configuration"><span class="header-link"></span></a>Using variables in your configuration</h2>
+<p>Sometimes in grunt it is valuable to use variables in your configuration. In situations like the <code>build:dev</code> command above, all of the included tasks can point to a directory variable which can easily be modified if your folder structure changes. Using variables also allows you to dynamically generate configuration based on task arguments. </p>
+<p>In the first example below, there is an example of using a variable for a directory name and the following example uses dynamically generated configuration. Grunt allows you to pass these variables via underscore templates inside of your configuration, so you could have a global variable, <code>globalConfig</code>, which would be available to each task using the following config:</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">grunt</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">globalConfig</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nx">src</span><span class="o">:</span> <span class="s1">&#39;src&#39;</span><span class="p">,</span>
+    <span class="nx">dest</span><span class="o">:</span> <span class="s1">&#39;dev&#39;</span>
+  <span class="p">};</span>
+
+  <span class="nx">grunt</span><span class="p">.</span><span class="nx">initConfig</span><span class="p">({</span>
+    <span class="nx">globalConfig</span><span class="o">:</span> <span class="nx">globalConfig</span><span class="p">,</span>
+    <span class="nx">compass</span><span class="o">:</span> <span class="p">{</span>
+      <span class="nx">options</span><span class="o">:</span> <span class="p">{</span>
+        <span class="nx">sassDir</span><span class="o">:</span> <span class="s1">&#39;&lt;%= globalConfig.src  %&gt;/styles&#39;</span><span class="p">,</span>
+        <span class="nx">cssDir</span><span class="o">:</span> <span class="s1">&#39;&lt;%= globalConfig.dest %&gt;&#39;</span>
+      <span class="p">},</span>
+      <span class="nx">dev</span><span class="o">:</span> <span class="p">{}</span>
+    <span class="p">},</span>
+    <span class="nx">handlebars</span><span class="o">:</span> <span class="p">{</span>
+      <span class="nx">compile</span><span class="o">:</span> <span class="p">{</span>
+        <span class="nx">files</span><span class="o">:</span> <span class="p">[{</span>
+          <span class="nx">src</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;&lt;%= globalConfig.src %&gt;/templates/*.hbs&#39;</span><span class="p">],</span>
+          <span class="nx">dest</span><span class="o">:</span> <span class="s1">&#39;&lt;%= globalConfig.dest %&gt;/scripts/compiledTemplates/appTemplates.js&#39;</span>
+        <span class="p">}]</span>
+      <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="nx">copy</span><span class="o">:</span> <span class="p">{</span>
+      <span class="nx">scripts</span><span class="o">:</span> <span class="p">{</span>
+        <span class="nx">files</span><span class="o">:</span> <span class="p">[{</span>
+          <span class="nx">expand</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+          <span class="nx">cwd</span><span class="o">:</span> <span class="s1">&#39;&lt;%= globalConfig.src %&gt;/scripts&#39;</span><span class="p">,</span>
+          <span class="nx">src</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;**&#39;</span><span class="p">],</span>
+          <span class="nx">dest</span><span class="o">:</span> <span class="s1">&#39;&lt;%= globalConfig.dest %&gt;/scripts&#39;</span>
+        <span class="p">}]</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">});</span>
+
+  <span class="nx">grunt</span><span class="p">.</span><span class="nx">registerTask</span><span class="p">(</span><span class="s1">&#39;build:dev&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;compass:dev&#39;</span><span class="p">,</span> <span class="s1">&#39;handlebars:compile&#39;</span><span class="p">,</span> <span class="s1">&#39;copy:scripts&#39;</span><span class="p">]);</span>
+<span class="p">};</span>
+</pre></div>
+</code></pre>
+<h2><a name="Running-individual-test-specs" class="anchor" href="#Running-individual-test-specs"><span class="header-link"></span></a>Running individual test specs</h2>
+<p>When writing a significant amount of tests, it is nice to be able to run a single test in isolation without running the whole suite. To achieve this, you can use a custom task called <code>spec</code> which takes a task and filename as arguments and then runs that task&#39;s spec target pointing at that file. Here is the grunt config to run individual test specs via <code>spec</code>:</p>
+<pre><code class="lang-js"><div class="highlight"><pre><span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">grunt</span><span class="p">)</span> <span class="p">{</span>
+  <span class="nx">grunt</span><span class="p">.</span><span class="nx">initConfig</span><span class="p">({</span>
+    <span class="nx">globalConfig</span><span class="o">:</span> <span class="nx">globalConfig</span><span class="p">,</span>
+    <span class="nx">jasmine</span><span class="o">:</span> <span class="p">{</span>
+      <span class="nx">all</span><span class="o">:</span> <span class="p">{</span>
+        <span class="nx">src</span><span class="o">:</span> <span class="s1">&#39;src/**.js&#39;</span><span class="p">,</span>
+        <span class="nx">options</span><span class="o">:</span> <span class="p">{</span>
+          <span class="nx">specs</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;test/spec/*Spec.js&#39;</span><span class="p">]</span>
+        <span class="p">}</span>
+      <span class="p">},</span>
+      <span class="nx">spec</span><span class="o">:</span> <span class="p">{</span>
+        <span class="nx">src</span><span class="o">:</span> <span class="s1">&#39;src/**.js&#39;</span><span class="p">,</span>
+        <span class="nx">options</span><span class="o">:</span> <span class="p">{</span>
+          <span class="nx">specs</span><span class="o">:</span> <span class="p">[</span><span class="s1">&#39;test/spec/&lt;%= globalConfig.file %&gt;Spec.js&#39;</span><span class="p">]</span>
+        <span class="p">}</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">});</span>
+
+  <span class="nx">grunt</span><span class="p">.</span><span class="nx">registerTask</span><span class="p">(</span><span class="s1">&#39;spec&#39;</span><span class="p">,</span> <span class="s1">&#39;Runs a task on a specified file&#39;</span><span class="p">,</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">taskName</span><span class="p">,</span> <span class="nx">fileName</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">globalConfig</span><span class="p">.</span><span class="nx">file</span> <span class="o">=</span> <span class="nx">fileName</span><span class="p">;</span>
+    <span class="nx">grunt</span><span class="p">.</span><span class="nx">task</span><span class="p">.</span><span class="nx">run</span><span class="p">(</span><span class="nx">taskName</span> <span class="o">+</span> <span class="s1">&#39;:spec&#39;</span><span class="p">);</span>
+  <span class="p">});</span>
+<span class="p">}</span>
+</pre></div>
+</code></pre>
+<p>To run a spec located at <code>test/spec/utilSpec.js</code> using the config above, you would enter the following command:</p>
+<pre><code class="lang-bash"><div class="highlight"><pre>grunt spec:jasmine:util
+</pre></div>
+</code></pre>
+<h2><a name="Plugins-to-check-out" class="anchor" href="#Plugins-to-check-out"><span class="header-link"></span></a>Plugins to check out</h2>
+<h3><a name="-grunt-pages--https---github-com-ChrisWren-grunt-pages-" class="anchor" href="#-grunt-pages--https---github-com-ChrisWren-grunt-pages-"><span class="header-link"></span></a><a href="https://github.com/ChrisWren/grunt-pages">grunt-pages</a></h3>
+<p>grunt-pages builds html pages from markdown and layout templates. When used with <a href="http://colinwren.github.io/Cabin/">Cabin</a>, you can scaffold out a Gruntfile to generate a static site. This blog is using the default Cabin theme, so if you dig the look, you should check out Cabin!</p>
+<h3><a name="-grunt-nodemon--https---github-com-ChrisWren-grunt-nodemon-" class="anchor" href="#-grunt-nodemon--https---github-com-ChrisWren-grunt-nodemon-"><span class="header-link"></span></a><a href="https://github.com/ChrisWren/grunt-nodemon">grunt-nodemon</a></h3>
+<p>grunt-nodemon is extremely useful if you are developing a node.js server. It configures <a href="https://github.com/remy/nodemon">nodemon</a> to monitor your node server for changes and restart when changes are detected. Nodemon&#39;s advantage over similar tools is that it stops attempting to restart your server when an error is encountered and only tries again when another file change is detected.</p>
+<h3><a name="-grunt-concurrent--https---github-com-sindresorhus-grunt-concurrent-" class="anchor" href="#-grunt-concurrent--https---github-com-sindresorhus-grunt-concurrent-"><span class="header-link"></span></a><a href="https://github.com/sindresorhus/grunt-concurrent">grunt-concurrent</a></h3>
+<p>grunt-concurrent was originally designed to make your tasks run faster, but it can also be used to run blocking tasks concurrently like watch and nodemon.</p>
+<h1><a name="Conclusion" class="anchor" href="#Conclusion"><span class="header-link"></span></a>Conclusion</h1>
+<p>Some of these concepts are present in the <a href="http://yeoman.io/">yeoman</a>-generated <a href="https://gist.github.com/ChrisWren/5786774">Gruntfile</a>. I recommend checking it out to see some of these concepts in action.</p>
+]]></description><link>http://chrisawren.com/posts/Advanced-Grunt-tooling</link><guid isPermaLink="true">http://chrisawren.com/posts/Advanced-Grunt-tooling</guid><category><![CDATA[code]]></category><dc:creator><![CDATA[Chris Wren]]></dc:creator><pubDate>Sun, 23 Jun 2013 07:00:00 GMT</pubDate></item><item><title><![CDATA[Learning Advanced JavaScript via the Backbone.js source code]]></title><description><![CDATA[<p><img src="http://backbonejs.org/docs/images/backbone.png" alt="http://backbonejs.org/docs/images/backbone.png"></p>
+<p>When I started learning Backbone.js, I hadn&#39;t done advanced JavaScript programming before. I took this opportunity to explore advanced JavaScript concepts in the context of the <a href="http://backbonejs.org/docs/backbone.html">Backbone.js source code</a>.</p>
+<p>In this post, I will share some of these concepts which helped me understand both Backbone.js and JavaScript on a deeper level.</p>
+<h2><a name="immediately-invoking-function-expressions" class="anchor" href="#immediately-invoking-function-expressions"><span class="header-link"></span></a>Immediately invoking function expressions</h2>
+<p>IIFEs look like this:</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="p">(</span><span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="p">...</span>
+<span class="p">}());</span>
+</pre></div>
+</code></pre>
+<p><em>Note: The opening <code>(</code> and closing <code>)</code> are syntax to denote that this function is immediately invoked</em></p>
+<p>These functions are used to prevent polluting the global namespace in the JavaScript runtime environment. The first line of the Backbone.js source code has an IIFE which wraps the rest of the code, preventing any variables declared inside it from being available globally. This is done to prevent situations where a variable is used multiple times in the global namespace on a web page.</p>
+<p>For example the first statements of the Backbone.js source code use common variable names which could potentially be modified elsewhere on the page if not placed inside the IIFE:</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">root</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
+<span class="kd">var</span> <span class="nx">previousBackbone</span> <span class="o">=</span> <span class="nx">root</span><span class="p">.</span><span class="nx">Backbone</span><span class="p">;</span>
+<span class="kd">var</span> <span class="nx">array</span> <span class="o">=</span> <span class="p">[];</span>
+<span class="kd">var</span> <span class="nx">push</span> <span class="o">=</span> <span class="nx">array</span><span class="p">.</span><span class="nx">push</span><span class="p">;</span>
+<span class="kd">var</span> <span class="nx">slice</span> <span class="o">=</span> <span class="nx">array</span><span class="p">.</span><span class="nx">slice</span><span class="p">;</span>
+<span class="kd">var</span> <span class="nx">splice</span> <span class="o">=</span> <span class="nx">array</span><span class="p">.</span><span class="nx">splice</span><span class="p">;</span>
+</pre></div>
+</code></pre>
+<h2><a name="inheritance" class="anchor" href="#inheritance"><span class="header-link"></span></a>Inheritance</h2>
+<p>When building a Backbone.js app your Views will look something like:</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">MyView</span> <span class="o">=</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+  <span class="p">...</span>
+<span class="p">});</span>
+</pre></div>
+</code></pre>
+<p><code>MyView</code> is extending from the base <code>Backbone.View</code>, meaning that it inherits <code>Backbone.View</code>&#39;s properties and methods. As a user of Backbone.js, you can optionally override these inherited properties and methods in your implementation.</p>
+<p>There are three different kinds of properties and methods that Backbone&#39;s base classes contain:</p>
+<h3><a name="properties-methods-that-are-expected-to-be-overwritten" class="anchor" href="#properties-methods-that-are-expected-to-be-overwritten"><span class="header-link"></span></a>Properties/Methods that are expected to be overwritten</h3>
+<p><code>Backbone.View</code> explicitly says in the annotated source that <code>initialize</code> and <code>render</code> should be overwritten as they are empty implementations:</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="nx">initialize</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{},</span>
+
+<span class="nx">render</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="k">this</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+</code></pre>
+<p>During runtime, the <code>Backbone.View</code>&#39;s constructor calls <code>initialize</code> and expects the user to implement some logic there to eventually render the view. More on constructors later.</p>
+<h3><a name="properties-methods-that-can-be-optionally-overwritten" class="anchor" href="#properties-methods-that-can-be-optionally-overwritten"><span class="header-link"></span></a>Properties/Methods that can be optionally overwritten</h3>
+<p><code>Backbone.Model</code> and <code>Backbone.Collection</code>&#39;s <code>sync</code> methods are the best examples of methods which work without a user&#39;s implementation, but can also be overwritten for custom functionality:</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="nx">sync</span><span class="o">:</span> <span class="kd">function</span> <span class="p">()</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">sync</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">arguments</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</code></pre>
+<p>In the default implementation of <code>sync</code> above, the model or collection simply calls the <a href="http://backbonejs.org/docs/backbone.html#section-135">Backbone.sync</a> method with the arguments it received using <a href="https://developer.mozilla.org/en-US/docs/JavaScript/Reference/Global_Objects/Function/apply">apply</a> to pass the <code>this</code> context object. More on <code>this</code> below.</p>
+<p>In practice, you may want to implement <a href="http://diveintohtml5.info/storage.html">localStorage</a> on one your Models/Collections to eliminate unnecessary network requests. To achieve this, you could override the sync method like this in your model:</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">MyModel</span> <span class="o">=</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Model</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+  <span class="nx">sync</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">method</span><span class="p">,</span> <span class="nx">model</span><span class="p">,</span> <span class="nx">options</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">method</span> <span class="o">===</span> <span class="s1">&#39;read&#39;</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nb">window</span><span class="p">.</span><span class="nx">localStorage</span><span class="p">.</span><span class="nx">getItem</span><span class="p">(</span><span class="s1">&#39;myData&#39;</span><span class="p">))</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nb">window</span><span class="p">.</span><span class="nx">localStorage</span><span class="p">.</span><span class="nx">getItem</span><span class="p">(</span><span class="s1">&#39;myData&#39;</span><span class="p">);</span>
+      <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">sync</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">arguments</span><span class="p">);</span>
+      <span class="p">}</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">sync</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">arguments</span><span class="p">);</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">});</span>
+</pre></div>
+</code></pre>
+<p>Above I simply check if the <code>myData</code> key is stored in localStorage, and if it is, I read it from there. If not, I call the <code>Backbone.Sync</code> method, just like the default <code>Backbone.Model.sync</code> implementation. This feature of Backbone is really powerful as it allows you to choose at what level to customize your classes.</p>
+<h4><a name="less-common-method-overriding" class="anchor" href="#less-common-method-overriding"><span class="header-link"></span></a>Less common method overriding</h4>
+<p>The <code>sync</code> method explicitly tells the user that it can be overwritten for custom functionality, but you can also optionally override many other Backbone methods. In the Backbone documentation, the following example is presented for overriding the <code>Backbone.Model.set</code> method:</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">Note</span> <span class="o">=</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Model</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+  <span class="nx">set</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">attributes</span><span class="p">,</span> <span class="nx">options</span><span class="p">)</span> <span class="p">{</span>
+    <span class="nx">Backbone</span><span class="p">.</span><span class="nx">Model</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">set</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">arguments</span><span class="p">);</span>
+    <span class="p">...</span>
+  <span class="p">}</span>
+<span class="p">});</span>
+</pre></div>
+</code></pre>
+<p>This is similar to the pattern we saw above, except we are calling the <code>Backbone.Model</code>&#39;s <code>set</code> method instead of copying its functionality. You will notice the <code>.prototype</code> added after the class, which refers to the inheritable methods of <code>Backbone.Model</code>.</p>
+<p>This type of override would make sense if we needed to perform some logic before updating the model via the standard <code>Backbone.Model</code>&#39;s set method.</p>
+<h3><a name="properties-methods-that-should-not-be-overwritten-or-called" class="anchor" href="#properties-methods-that-should-not-be-overwritten-or-called"><span class="header-link"></span></a>Properties/Methods that should <em>not</em> be overwritten or called</h3>
+<p>In reality, every single inheritable method in Backbone&#39;s classes can be overwritten and called by the user. However, some of these methods are used internally by Backbone and should not be called or overwritten so they achieve their expected functionality when used in the library.</p>
+<p>JavaScript doesn&#39;t provide a mechanism to hide these methods from the user with its style of inheritance, so instead a common pattern is to prefix these <em>private</em> methods with a <code>_</code> to indicate that the user of the function shouldn&#39;t overwrite it or call it.</p>
+<p>This is seen throughout the Backbone.js source, and here is an example of two <em>private</em> methods in the <code>Backbone.View</code> class:</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="nx">_configure</span><span class="o">:</span> <span class="kd">function</span><span class="p">(</span><span class="nx">options</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">options</span><span class="p">)</span> <span class="nx">options</span> <span class="o">=</span> <span class="nx">_</span><span class="p">.</span><span class="nx">extend</span><span class="p">({},</span> <span class="nx">_</span><span class="p">.</span><span class="nx">result</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="s1">&#39;options&#39;</span><span class="p">),</span> <span class="nx">options</span><span class="p">);</span>
+  <span class="nx">_</span><span class="p">.</span><span class="nx">extend</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">_</span><span class="p">.</span><span class="nx">pick</span><span class="p">(</span><span class="nx">options</span><span class="p">,</span> <span class="nx">viewOptions</span><span class="p">));</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">options</span> <span class="o">=</span> <span class="nx">options</span><span class="p">;</span>
+<span class="p">},</span>
+
+<span class="nx">_ensureElement</span><span class="o">:</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">el</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">attrs</span> <span class="o">=</span> <span class="nx">_</span><span class="p">.</span><span class="nx">extend</span><span class="p">({},</span> <span class="nx">_</span><span class="p">.</span><span class="nx">result</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="s1">&#39;attributes&#39;</span><span class="p">));</span>
+    <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">id</span><span class="p">)</span> <span class="nx">attrs</span><span class="p">.</span><span class="nx">id</span> <span class="o">=</span> <span class="nx">_</span><span class="p">.</span><span class="nx">result</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">className</span><span class="p">)</span> <span class="nx">attrs</span><span class="p">[</span><span class="s1">&#39;class&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nx">_</span><span class="p">.</span><span class="nx">result</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="s1">&#39;className&#39;</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">$el</span> <span class="o">=</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">$</span><span class="p">(</span><span class="s1">&#39;&lt;&#39;</span> <span class="o">+</span> <span class="nx">_</span><span class="p">.</span><span class="nx">result</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="s1">&#39;tagName&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;&gt;&#39;</span><span class="p">).</span><span class="nx">attr</span><span class="p">(</span><span class="nx">attrs</span><span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">setElement</span><span class="p">(</span><span class="nx">$el</span><span class="p">,</span> <span class="kc">false</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">setElement</span><span class="p">(</span><span class="nx">_</span><span class="p">.</span><span class="nx">result</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="s1">&#39;el&#39;</span><span class="p">),</span> <span class="kc">false</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</code></pre>
+<p>These <em>private</em> methods are called internally by the <code>Backbone.View</code> class and act as supporting methods to public methods or the class&#39; constructor. For example, the <code>_.configure()</code> method is called in the <code>Backbone.View</code>&#39;s constructor to configure the view based on the options the user passes in.</p>
+<h2><a name="javascript-constructors" class="anchor" href="#javascript-constructors"><span class="header-link"></span></a>JavaScript constructors</h2>
+<p>After writing your own Backbone views, you will invoke them by writing something like the following statement:</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="nx">MyViewInstance</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">MyView</span><span class="p">();</span>
+</pre></div>
+</code></pre>
+<p>This <code>new</code> keyword creates a new instance of <code>MyView</code> by calling its constructor and returning an object containing inherited properties and methods. Likely while programming in Backbone, you won&#39;t define a custom constructor, as the inherited constructor performs expected logic to prepare the class. Here is the <code>Backbone.View</code> constructor:</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">View</span> <span class="o">=</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">options</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">cid</span> <span class="o">=</span> <span class="nx">_</span><span class="p">.</span><span class="nx">uniqueId</span><span class="p">(</span><span class="s1">&#39;view&#39;</span><span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_configure</span><span class="p">(</span><span class="nx">options</span> <span class="o">||</span> <span class="p">{});</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_ensureElement</span><span class="p">();</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">initialize</span><span class="p">.</span><span class="nx">apply</span><span class="p">(</span><span class="k">this</span><span class="p">,</span> <span class="nx">arguments</span><span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">delegateEvents</span><span class="p">();</span>
+  <span class="p">};</span>
+</pre></div>
+</code></pre>
+<p>This constructor sets up the view by giving it a unique id, configuring it based on an optional <code>options</code> argument, ensuring the view is bound to an element, and then initializing the view and delegating DOM events.</p>
+<h2><a name="the-this-keyword" class="anchor" href="#the-this-keyword"><span class="header-link"></span></a>The <code>this</code> keyword</h2>
+<p>Understanding <code>this</code> is essential to advanced programming in JavaScript. It refers to the object on which the current function was invoked. In a Backbone View, when you write <code>this.render()</code> inside of your <code>initialize</code> function, the <code>this</code> refers to your View because it was passed via apply in the constructor function above.</p>
+<p>One interesting use of <code>this</code> in <code>Backbone.View</code> is in the <a href="http://backbonejs.org/docs/backbone.html#section-130">delegateEvents</a> method. The following statement from that method binds the jQuery event handlers to the corresponding view, so that <code>this</code> refers to <code>MyView</code> instead of the DOM element which received the event:</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="nx">method</span> <span class="o">=</span> <span class="nx">_</span><span class="p">.</span><span class="nx">bind</span><span class="p">(</span><span class="nx">method</span><span class="p">,</span> <span class="k">this</span><span class="p">);</span>
+</pre></div>
+</code></pre>
+<p>Without having the above line of code, the following <code>buttonClickHandler</code> method would refer to the DOM element with the <code>myButton</code> class that was clicked instead of <code>MyView</code> and would throw an error when <code>this.render()</code> is called:</p>
+<pre><code class="lang-javascript"><div class="highlight"><pre><span class="kd">var</span> <span class="nx">MyView</span> <span class="o">=</span> <span class="nx">Backbone</span><span class="p">.</span><span class="nx">View</span><span class="p">.</span><span class="nx">extend</span><span class="p">({</span>
+  <span class="nx">events</span><span class="o">:</span> <span class="p">{</span>
+    <span class="s1">&#39;click .myButton&#39;</span><span class="o">:</span> <span class="s1">&#39;buttonClickHandler&#39;</span>
+  <span class="p">},</span>
+  <span class="nx">buttonClickHandler</span><span class="o">:</span> <span class="kd">function</span> <span class="p">(</span><span class="nx">event</span><span class="p">)</span> <span class="p">{</span>
+
+    <span class="c1">// this would refer to the jQuery element not the MyView instance</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">render</span><span class="p">();</span>
+  <span class="p">}</span>
+<span class="p">});</span>
+</pre></div>
+</code></pre>
+<h2><a name="-underscore-js-http-underscorejs-org-" class="anchor" href="#-underscore-js-http-underscorejs-org-"><span class="header-link"></span></a><a href="http://underscorejs.org/">underscore.js</a></h2>
+<p>underscore is a powerful utility which allows you to write more semantic code. When operating on arrays or objects, you can use methods like <code>_.first</code>, <code>_.any</code>, and <code>_.without</code> rather than writing your own data manipulation functions. Backbone <a href="http://backbonejs.org/docs/backbone.html#section-115">provides underscore methods</a> directly on the <code>Backbone.Collection</code> and <code>Backbone.Model</code> for easy access to the methods.</p>
+<p>In addition to custom convenience methods, underscore implements cross-browser versions of newer JavaScript functions which are only available in modern browsers. underscore will detect if the browser supports the method, and will use the native implementation if it is present.</p>
+<h2><a name="conclusion" class="anchor" href="#conclusion"><span class="header-link"></span></a>Conclusion</h2>
+<p>I hope this was helpful for developers wanting to advance their JavaScript and Backbone.js knowledge! I recommend exploring these concepts by writing code snippets in a web browser JavaScript console or a node.js command line interpreter. Let me know if you have any questions in the comments.</p>
+]]></description><link>http://chrisawren.com/posts/Learning-Advanced-JavaScript-via-the-Backbone-js-source-code</link><guid isPermaLink="true">http://chrisawren.com/posts/Learning-Advanced-JavaScript-via-the-Backbone-js-source-code</guid><category><![CDATA[code]]></category><dc:creator><![CDATA[Chris Wren]]></dc:creator><pubDate>Sun, 09 Jun 2013 07:00:00 GMT</pubDate></item></channel></rss>
